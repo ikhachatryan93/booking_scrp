@@ -11,33 +11,50 @@ import hashlib
 import logging
 
 
-class HotelInfo:
+class Hotel:
     def __init__(self, hotel_url):
-        self.hotel_info = dict(
-            url=hotel_url, destination="", hotel_name="",
-            user_rating="", number_of_reviews="", price="", address="")
+        self.info = dict(
+            url=hotel_url, name="", rating="", num_reviews="", price="", address="")
 
-        self.hotel_page = utilities.setup_browser(utilities.configs.get("driver"), maximize=True)
+        self.hotel = utilities.setup_browser()
 
-        self.hotel_page.get(self.hotel_info["url"])
-        self.hotel_page_source = BeautifulSoup(self.hotel_page.page_source, "html5lib")
+        self.hotel.get(self.info["url"])
+        self.hotel_source = BeautifulSoup(self.hotel.page_source, "html5lib")
 
-        self.NF = "From {}: could not find ".format(self.hotel_info["url_name"])
-        self.wait_5 = WebDriverWait(self.hotel_page, 5)
-        self.wait_2 = WebDriverWait(self.hotel_page, 2)
-        self.wait_1 = WebDriverWait(self.hotel_page, 1)
+        self.NOT_FOUND_MSG = "From {}: could not find ".format(self.info["url_name"])
+        self.wait_5 = WebDriverWait(self.hotel, 5)
+        self.wait_2 = WebDriverWait(self.hotel, 2)
+        self.wait_1 = WebDriverWait(self.hotel, 1)
 
-    def get_hotel_name(self):
-        return
+    def get_name(self):
+        try:
+            self.info["name"] = self.hotel.find_element_by_id("hp_hotel_name").text
+        except:
+            logging.error(self.NOT_FOUND_MSG + "name")
 
-    def get_destination(self):
-        return
+    def get_address(self):
+        try:
+            self.info["address"] = self.hotel.find_element_by_id("b_tt_holder_1").text
+        except:
+            logging.error(self.NOT_FOUND_MSG + "address")
+
+    def get_rating(self):
+        try:
+            self.info["rating"] = self.hotel.find_elements_by_css_selector(".average.js--hp-scorecard-scoreval").text.strip()
+        except:
+            logging.error(self.NOT_FOUND_MSG + "rating")
 
     def get_number_of_reviews(self):
-        return
+        try:
+            self.info["num_reviews"] = self.hotel.find_elements_by_xpath(".//*[@id='js--hp-gallery-scorecard']/span"
+                                                                         "/strong").text.strip()
+        except:
+            logging.error(self.NOT_FOUND_MSG + "number of reviews")
 
     def get_price(self):
-        return
+        pass
+        # try:
+        #     self.info["price"] = self.hotel.
 
         # def get_address(self):
         #     try:
@@ -65,11 +82,10 @@ class HotelInfo:
         #         except:
         #             logging.warning(self.NF + "photos")
 
-    def extract_hotel_info(self):
+    def extract(self):
         # try:
-        parse_extraction_info_from_config_file()
-        self.get_hotel_name()
-        self.get_destination()
+        self.get_name()
+        self.get_address()
         self.get_number_of_reviews()
         self.get_price()
-        self.hotel_page.quit()
+        self.hotel.quit()

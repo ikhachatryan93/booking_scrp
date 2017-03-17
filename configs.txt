@@ -1,11 +1,13 @@
-[search_info]
-
-[extraction_info]
-# Extraction of reviews slows down the speed
-# Anyway you can enable it
-
 [parameters]
-threads = 20
 
-[tools]
-driver = phantomjs
+# depends on computer parameters (usually until 20)
+threads = 1
+
+# supported: chrome, phantomjs or firefox
+driver = firefox
+
+# hiding the browsers only work in linux
+display_browser = No
+
+# should be file or stream
+logging_handler = file

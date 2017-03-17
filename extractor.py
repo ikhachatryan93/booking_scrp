@@ -1,34 +1,25 @@
 #! /bin/env python
 import utilities
-import configparser
-import json
-import time
-
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
-
+import platform
+import logging
 import booking
+import sys
 
-# from pyvirtualdisplay import Display
-#
-# display = Display(visible=0, size=(1920, 1080))
-# display.start()
+from pyvirtualdisplay import Display
+from os import path, sep, remove
 
+dir_path = path.dirname(path.realpath(__file__))
+sys.path.insert(0, dir_path + sep + "drivers")
+sys.path.insert(0, dir_path + sep + "modules")
+
+if not utilities.configs.get("display_browser") and "Linux" in platform.system():
+    display = Display(visible=0, size=(1920, 1080))
+    display.start()
 
 booking_url = "https//www.booking.com"
-
-browser = ""
-config2 = ""
-
-bool_config_1 = False
-bool_config_2 = False
-
-threads_num = 1
-max_category_scroll_downs = 1000
-
-main_query = 'http://www.booking.com/searchresults.html?checkin_month=CI_MONTH&checkin_monthday=CI_DAY&checkin_year=CI_YEAR&checkout_month=CO_MONTH&checkout_monthday=CO_DAY&checkout_year=CO_YEAR&group_adults=ADULTS&no_rooms=ROOMS&src_elem=sb&ss=CITY'
+main_query = 'http://www.booking.com/searchresults.html?checkin_month=CI_MONTH&checkin_monthday=CI_DAY&checkin_year' \
+             '=CI_YEAR&checkout_month=CO_MONTH&checkout_monthday=CO_DAY&checkout_year=CO_YEAR&group_adults=ADULTS' \
+             '&no_rooms=ROOMS&src_elem=sb&ss=CITY '
 
 
 def get_query(params, index):
@@ -64,10 +55,10 @@ def get_query(params, index):
 def extract(query_url, keyword):
     print("Obtaining information for: {}".format(keyword))
 
-    driver = utilities.setup_browser(utilities.configs.get("driver"), maximize=True)
+    driver = utilities.setup_browser()
     driver.get(query_url)
 
-    extracted_data = booking.extract_category(driver, utilities.configs.get("threads"))
+    extracted_data = booking.extract(driver, utilities.configs.get("threads"))
 
     utilities.append_into_file("done_list.txt", keyword)
 
@@ -76,7 +67,6 @@ def extract(query_url, keyword):
 
 
 def main():
-    # parse_config_file()
     params = utilities.read_excel("input.xlsx")
 
     hotels_info = []

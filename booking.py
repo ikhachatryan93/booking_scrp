@@ -1,30 +1,29 @@
-import time
-import json
+import sys
 import logging
 import threading
+import time
 
-from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
-from selenium.common.exceptions import StaleElementReferenceException
 
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
 from urllib.request import urljoin
-import os.path
-import sys
-import time
 
-import utilities
-from hotel import HotelInfo
+from hotel import Hotel
 
 main_url = "http://www.booking.com"
 
+logging.info("extracting hotels list")
+logging.error("extracting hotels list")
+logging.debug("extracting hotels list")
+logging.critical("extracting hotels list")
+logging.warning("extracting hotels list")
+
 
 def get_hotel_urls(driver):
+    logging.info("extracting hotels list")
     wait = WebDriverWait(driver, 5)
     while True:
         soup = BeautifulSoup(driver.page_source, "html5lib")
@@ -44,24 +43,19 @@ def get_hotel_urls(driver):
     return urls
 
 
-def run_category_extraction(url, hotel_info, keyword):
-    return ""
-    # try:
-    #     company = HomestarCompanyInfo(urljoin(homestars_url, url), keyword)
-    #     company.extract_company()
-    #     hotel_info.append(company.company_info)
-    # except:
-    #     time.sleep(3)
-    #     try:
-    #         company = HomestarCompanyInfo(urljoin(homestars_url, url), keyword)
-    #     except Exception as e:
-    #         logging.error("url : {}.  {}".format(url, str(e)))
+def extract_hotel(url, hotels_info):
+    try:
+        hotel = Hotel(url)
+        hotel.extract()
+        hotels_info.append(hotel.info)
+    except Exception as e:
+        logging.error(str(e) + " while getting information from " + url)
 
 
-def extract_category(driver, threads_num):
+def extract(driver, threads_num):
     hotels_url = get_hotel_urls(driver)
 
-    hotel_info = []
+    hotels_info = []
     trds = []
     i = 0
     total = len(hotels_url)
@@ -70,16 +64,13 @@ def extract_category(driver, threads_num):
         sys.stdout.write("\r[Extracting: {}/{}]".format(i, total))
         sys.stdout.flush()
         time.sleep(0.3)
-        t = threading.Thread(target=run_category_extraction, args=(url, hotel_info))
+        t = threading.Thread(target=extract_hotel, args=(url, hotels_info))
         t.daemon = True
         t.start()
         trds.append(t)
         while threading.active_count() > threads_num:
             time.sleep(0.4)
-    print("l2")
-    for i in trds:
-        i.join(10)
-    print("l4")
-    logging.info("Finished. keyword: {},  companies: {}".format(keyword, len(hotel_info)))
+    for t in trds:
+        t.join(10)
 
-    return hotel_info
+    return hotels_info
