@@ -1,0 +1,11 @@
+[search_info]
+
+[extraction_info]
+# Extraction of reviews slows down the speed
+# Anyway you can enable it
+
+[parameters]
+threads = 20
+
+[tools]
+driver = phantomjs
