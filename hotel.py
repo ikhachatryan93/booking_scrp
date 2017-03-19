@@ -2,7 +2,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
+from urllib.request import urlopen
 from datetime import datetime
 import configparser
 import time
@@ -18,41 +20,59 @@ class Hotel:
 
         self.hotel = utilities.setup_browser()
 
+        # self.hotel.get(self.info["url"])
+        # time.sleep(3)
         self.hotel.get(self.info["url"])
-        self.hotel_source = BeautifulSoup(self.hotel.page_source, "html5lib")
+        self.page_source = urlopen(hotel_url)
+        self.hotel_source = BeautifulSoup(self.page_source, "html5lib")
+        #print(self.hotel_source.prettify())
+        print(self.hotel_source.prettify()/asd)
 
-        self.NOT_FOUND_MSG = "From {}: could not find ".format(self.info["url_name"])
+        self.NOT_FOUND_MSG = "From {}: could not find ".format(self.info["url"])
         self.wait_5 = WebDriverWait(self.hotel, 5)
         self.wait_2 = WebDriverWait(self.hotel, 2)
         self.wait_1 = WebDriverWait(self.hotel, 1)
 
     def get_name(self):
         try:
-            self.info["name"] = self.hotel.find_element_by_id("hp_hotel_name").text
+            self.info["name"] = self.hotel.find_element_by_id("hp_hotel_name").text.strip()
         except:
             logging.error(self.NOT_FOUND_MSG + "name")
 
     def get_address(self):
         try:
-            self.info["address"] = self.hotel.find_element_by_id("b_tt_holder_1").text
-        except:
+            #self.info["address"] = self.hotel.find_element_by_xpath(".//*[@id='b_tt_holder_1']").text.strip()
+            #self.info["address"] = self.hotel.find_element(By.XPATH, ".//*[@id='b_tt_holder_1']").text.strip()
+            #self.info["address"] = self.wait_5.until(EC.presence_of_element_located((By.XPATH, ".//*[@id='b_tt_holder_1']"))).text
+            #pass
+
+            self.info["address"] = self.hotel_source.find("span", {"id", "b_tt_holder_1"}).text.strip()
+        except TimeoutException:
+            print("asdadsadsad")
+        except Exception as e:
+            print(str(e))
             logging.error(self.NOT_FOUND_MSG + "address")
 
     def get_rating(self):
         try:
-            self.info["rating"] = self.hotel.find_elements_by_css_selector(".average.js--hp-scorecard-scoreval").text.strip()
+            #self.info["rating"] = self.hotel.find_element_by_css_selector(".average.js--hp-scorecard-scoreval").text.strip()
+            self.info["rating"] = self.hotel.find_elements_by_css_selector("span.average.js--hp-scorecard-scoreval")
+            #self.info["rating"] = self.hotel_source.find("div", {"id", "js--hp-gallery-scorecard"}).find("span", {"class": "best"}).text.strip()
         except:
             logging.error(self.NOT_FOUND_MSG + "rating")
 
     def get_number_of_reviews(self):
         try:
-            self.info["num_reviews"] = self.hotel.find_elements_by_xpath(".//*[@id='js--hp-gallery-scorecard']/span"
-                                                                         "/strong").text.strip()
+            self.info["num_reviews"] = self.hotel.find_element_by_xpath(".//*[@id='js--hp-gallery-scorecard']/span/strong").text.strip()
+            #self.info["num_reviews"] = self.hotel_source.find("div", {"id", "js--hp-gallery-scorecard"}).find("span", {"class": "count"}).text.strip()
         except:
             logging.error(self.NOT_FOUND_MSG + "number of reviews")
 
     def get_price(self):
-        pass
+        try:
+            self.info["price"] = self.hotel.find_element_by_xpath(".totalPrice_rack-rate").text.strip()
+        except:
+            logging.error(self.NOT_FOUND_MSG + "price")
         # try:
         #     self.info["price"] = self.hotel.
 

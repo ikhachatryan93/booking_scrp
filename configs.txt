@@ -1,12 +1,12 @@
 [parameters]
 
-# depends on computer parameters (usually until 20)
+# depends on computer parameters
 threads = 1
 
 # supported: chrome, phantomjs or firefox
-driver = firefox
+driver = chrome
 
-# hiding the browsers only work in linux
+# only in linux
 display_browser = No
 
 # should be file or stream
