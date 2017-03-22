@@ -5,15 +5,13 @@ import json
 from os import sep, path, remove
 import sys
 from openpyxl import Workbook
-from pandas import *
-
+from pandas import ExcelFile
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 
 dir_path = path.dirname(path.realpath(__file__))
 sys.path.append(dir_path + "modules")
 sys.path.append(dir_path + "drivers")
-
 
 class configs:
     file = r"./configs.txt"
@@ -32,6 +30,8 @@ class configs:
         configs.config["display_browser"] = config_parser.getboolean('parameters', 'display_browser')
         configs.config["output_format"] = config_parser.get('parameters', 'output_format')
         configs.config["output_filename"] = config_parser.get('parameters', 'output_name')
+        configs.config["testing"] = config_parser.getboolean('parameters', 'testing')
+        configs.config["max_browsers"] = config_parser.getint('parameters', 'browsers')
 
         configs.read = True
 
@@ -81,14 +81,22 @@ def setup_browser(browser=""):
 
 
 def setup_chrome(bpath, maximize=True):
-    driver = webdriver.Chrome(bpath)
+    chromeOptions = webdriver.ChromeOptions()
+    prefs = {"profile.managed_default_content_settings.images": 2}
+    chromeOptions.add_experimental_option("prefs", prefs)
+    driver = webdriver.Chrome(bpath, chrome_options=chromeOptions)
     if maximize:
         driver.maximize_window()
     return driver
 
 
 def setup_firefox(bpath, maximize=True):
-    driver = webdriver.Firefox(executable_path=bpath)
+    firefox_profile = webdriver.FirefoxProfile()
+    firefox_profile.set_preference('permissions.default.stylesheet', 2)
+    firefox_profile.set_preference('permissions.default.image', 2)
+    firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
+    driver = webdriver.Firefox(executable_path=bpath, firefox_profile=firefox_profile)
+
     if maximize:
         driver.maximize_window()
     return driver

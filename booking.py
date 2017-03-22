@@ -16,6 +16,10 @@ import utilities
 
 main_url = "http://www.booking.com"
 
+drivers = []
+for j in range(utilities.configs.get("max_browsers")):
+    drivers.append({"driver": utilities.setup_browser(), "status": "free", "num": 0})
+
 
 def get_hotel_urls(driver):
     logging.info("Extracting hotels list")
@@ -31,11 +35,15 @@ def get_hotel_urls(driver):
         print(e)
 
     urls = []
+    testing = utilities.configs.get("testing")
     while True:
         soup = BeautifulSoup(driver.page_source, "lxml")
         a_tags = soup.find("div", {"id": "hotellist_inner"}).findAll("a", {"class", "hotel_name_link"})
         for tag in a_tags:
             urls.append(urljoin(main_url, tag["href"]))
+
+        if testing:
+            break
 
         try:
             paginator = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".paging-next")))
@@ -43,8 +51,9 @@ def get_hotel_urls(driver):
             break
 
         driver.execute_script("return arguments[0].scrollIntoView(false);", paginator)
+        driver.execute_script("window.scrollBy(0, 150);")
         paginator.click()
-        time.sleep(3)
+        time.sleep(1)
 
     driver.quit()
 
@@ -57,9 +66,20 @@ def get_hotel_urls(driver):
     return filtered
 
 
+def get_free_driver():
+    while True:
+        time.sleep(0.2)
+        for i in range(len(drivers)):
+            if drivers[i]["status"] == "free":
+                drivers[i]["status"] = "used"
+                return drivers[i]["driver"], i
+
+
 def extract_hotel(url, hotels_info, try_again=True):
+    driver, i = get_free_driver()
+    driver.get(url)
     try:
-        hotel = Hotel(url)
+        hotel = Hotel(driver)
         hotel.extract()
         hotels_info.append(hotel.info)
     except Exception as e:
@@ -67,13 +87,12 @@ def extract_hotel(url, hotels_info, try_again=True):
         logging.warning("Trying again")
         if try_again:
             extract_hotel(url, hotels_info, try_again=False)
+    drivers[i]["status"] = "free"
 
 
 def extract(driver, threads_num):
     hotels_url = get_hotel_urls(driver)
-
     hotels_info = []
-    #extract_hotel(hotels_url.pop(), hotels_info)
     trds = []
     i = 0
     total = len(hotels_url)
@@ -90,6 +109,9 @@ def extract(driver, threads_num):
             time.sleep(0.4)
 
     for t in trds:
-      t.join(10)
+        t.join(10)
+
+    for d in drivers:
+        d["driver"].quit()
 
     return hotels_info

@@ -4,17 +4,26 @@
 # try between 5 to 30
 threads = 3
 
-# browser type: chrome, phantomjs(without gui) or firefox
-# do not use phantomjs, as it has many bugs
-driver = chrome
+# max number of browsers
+browsers = 3
 
-# for firefox and chrome.
+# browser type: chrome, firefox or phantomjs
+# do not use phantomjs, as it has many bugs
+driver = firefox
+
+# for firefox and chrome runs in background.
 # Only in linux!
 display_browser = No
 
+# write log into the stream or file
 # should be file or stream
 logging_handler = stream
 
 # output format, should be excel or json
 output_format = excel
+
+# output file name
 output_name = output.xlsx
+
+# mode
+testing = true

@@ -7,14 +7,17 @@ sys.path.insert(0, dir_path + sep + "drivers")
 sys.path.insert(0, dir_path + sep + "modules")
 
 import platform
-
 import utilities
 import booking
-from pyvirtualdisplay import Display
 
-if not utilities.configs.get("display_browser") and "Linux" in platform.system():
-    display = Display(visible=0, size=(1920, 1080))
-    display.start()
+try:
+    from pyvirtualdisplay import Display
+
+    if not utilities.configs.get("display_browser") and "Linux" in platform.system():
+        display = Display(visible=0, size=(1920, 1080))
+        display.start()
+except:
+    pass
 
 booking_url = "https//www.booking.com"
 main_query = 'http://www.booking.com/searchresults.html?checkin_month=CI_MONTH&checkin_monthday=CI_DAY&checkin_year' \
@@ -54,7 +57,7 @@ def get_query(params, index):
 def extract(query_url, keyword):
     print("Obtaining information for: {}".format(keyword))
 
-    driver = utilities.setup_browser("firefox")
+    driver = utilities.setup_browser()
     driver.get(query_url)
 
     extracted_data = booking.extract(driver, utilities.configs.get("threads"))
@@ -66,7 +69,7 @@ def extract(query_url, keyword):
 
 
 def main():
-    params = utilities.read_excel("input.xlsx")
+    params = utilities.read_excel_file("input.xlsx")
 
     hotels_info = []
     for index in range(len(params["city"])):
