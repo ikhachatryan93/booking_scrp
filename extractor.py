@@ -1,16 +1,16 @@
 #! /bin/env python
-import utilities
-import platform
-import logging
-import booking
+from os import path, sep
 import sys
-
-from pyvirtualdisplay import Display
-from os import path, sep, remove
 
 dir_path = path.dirname(path.realpath(__file__))
 sys.path.insert(0, dir_path + sep + "drivers")
 sys.path.insert(0, dir_path + sep + "modules")
+
+import platform
+
+import utilities
+import booking
+from pyvirtualdisplay import Display
 
 if not utilities.configs.get("display_browser") and "Linux" in platform.system():
     display = Display(visible=0, size=(1920, 1080))
@@ -34,7 +34,6 @@ def get_query(params, index):
     co_day = str(checkout.day)
     co_month = str(checkout.month)
     co_year = str(checkout.year)
-
     rooms = str(params["rooms"][index])
     adults = str(params["adults"][index])
     query = main_query. \
@@ -55,12 +54,12 @@ def get_query(params, index):
 def extract(query_url, keyword):
     print("Obtaining information for: {}".format(keyword))
 
-    driver = utilities.setup_browser()
+    driver = utilities.setup_browser("firefox")
     driver.get(query_url)
 
     extracted_data = booking.extract(driver, utilities.configs.get("threads"))
 
-    utilities.append_into_file("done_list.txt", keyword)
+    # utilities.append_into_file("done_list.txt", keyword)
 
     driver.quit()
     return extracted_data
@@ -73,6 +72,7 @@ def main():
     for index in range(len(params["city"])):
         query_url, keyword = get_query(params, index)
         hotels_info += extract(query_url, keyword)
+    utilities.write_output(hotels_info)
 
 
 if __name__ == "__main__":

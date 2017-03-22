@@ -1,13 +1,20 @@
 [parameters]
 
-# depends on computer parameters
-threads = 1
+# number of threads to be run in parallel, depends on computer parameters
+# try between 5 to 30
+threads = 3
 
-# supported: chrome, phantomjs or firefox
+# browser type: chrome, phantomjs(without gui) or firefox
+# do not use phantomjs, as it has many bugs
 driver = chrome
 
-# only in linux
+# for firefox and chrome.
+# Only in linux!
 display_browser = No
 
 # should be file or stream
-logging_handler = file
+logging_handler = stream
+
+# output format, should be excel or json
+output_format = excel
+output_name = output.xlsx

@@ -1,13 +1,18 @@
 import configparser
 import logging
 import platform
+import json
 from os import sep, path, remove
-
+import sys
+from openpyxl import Workbook
 from pandas import *
 
 from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
 
 dir_path = path.dirname(path.realpath(__file__))
+sys.path.append(dir_path + "modules")
+sys.path.append(dir_path + "drivers")
 
 
 class configs:
@@ -25,6 +30,8 @@ class configs:
         configs.config["logging_handler"] = config_parser.get('parameters', 'logging_handler')
         configs.config["threads"] = config_parser.getint('parameters', 'threads')
         configs.config["display_browser"] = config_parser.getboolean('parameters', 'display_browser')
+        configs.config["output_format"] = config_parser.get('parameters', 'output_format')
+        configs.config["output_filename"] = config_parser.get('parameters', 'output_name')
 
         configs.read = True
 
@@ -50,8 +57,9 @@ rootLogger.addHandler(handler)
 rootLogger.setLevel(logging.INFO)
 
 
-def setup_browser():
-    browser = configs.get("driver")
+def setup_browser(browser=""):
+    if browser == "":
+        browser = configs.get("driver")
     bpath = dir_path + sep + "drivers" + sep + browser
 
     if "Windows" in platform.system():
@@ -94,6 +102,42 @@ def setup_phantomjs(bpath, maximize=True):
     return driver
 
 
+def write_output(data):
+    fformat = configs.get("output_format")
+    file = configs.get("output_filename")
+    if fformat == "json":
+        write_json_file(file, data)
+    else:
+        if fformat != "excel":
+            logging.warning("Unknown output format is specified, using excel by default")
+        write_to_excel(file, data)
+
+
+def write_json_file(name, data):
+    with open(name, 'w') as fname:
+        json.dump(data, fname)
+
+
+def write_to_excel(xlsx_file, dict_list=None, sheet_title_1=None):
+    if dict_list is None:
+        dict_list = []
+        logging.warning('Warning: No data was available for writing into the worksheet {}'.format(sheet_title_1))
+
+    wb = Workbook(write_only=False)
+    wb.guess_types = True
+    ws = wb.create_sheet(title=sheet_title_1)
+    del wb['Sheet']
+
+    records = []
+    for d in dict_list:
+        records.append(list(d.values()))
+
+    ws.append(list(dict_list[0].keys()))
+    for record in records:
+        ws.append(record)
+    wb.save(xlsx_file)
+
+
 def read_excel_file(excel_file):
     xls = ExcelFile(excel_file)
     return xls.parse(xls.sheet_names[0])
@@ -111,3 +155,14 @@ def write_lines_to_file(name, urls):
                 f.write(url + '\n')
             except Exception as e:
                 print(str(e))
+
+
+##  Clicks element
+def click(driver, elem):
+    try:
+        elem.click()
+    except:
+        actions = ActionChains(driver)
+        actions.move_to_element(elem)
+        actions.click(elem)
+        actions.perform()
