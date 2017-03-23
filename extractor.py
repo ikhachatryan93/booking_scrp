@@ -1,23 +1,24 @@
 #! /bin/env python
 from os import path, sep
 import sys
+import platform
 
 dir_path = path.dirname(path.realpath(__file__))
 sys.path.insert(0, dir_path + sep + "drivers")
 sys.path.insert(0, dir_path + sep + "modules")
 
-import platform
-import utilities
-import booking
-
 try:
-    from pyvirtualdisplay import Display
+from pyvirtualdisplay import Display
 
-    if not utilities.configs.get("display_browser") and "Linux" in platform.system():
-        display = Display(visible=0, size=(1920, 1080))
-        display.start()
+if "Linux" in platform.system():
+    display = Display(visible=1, size=(800, 600))
+    display.start()
 except:
     pass
+
+
+import utilities
+import booking
 
 booking_url = "https//www.booking.com"
 main_query = 'http://www.booking.com/searchresults.html?checkin_month=CI_MONTH&checkin_monthday=CI_DAY&checkin_year' \
