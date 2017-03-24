@@ -98,10 +98,14 @@ def extract(driver, threads_num):
     hotels_url = get_hotel_urls(driver)
     hotels_info = []
     # extract_hotel(hotels_url.pop(), hotels_info)
+    max_extr_hotels = utilities.configs.get("max_num_extract_hotels")
     trds = []
     i = 0
     total = len(hotels_url)
     for url in hotels_url:
+        if i >= max_extr_hotels:
+            print("Reached maximum number of extractions specified in configs.txt file")
+            break
         i += 1
         sys.stdout.write("\r[Extracting: {}/{}]".format(i, total))
         sys.stdout.flush()

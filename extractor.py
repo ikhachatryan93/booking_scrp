@@ -59,7 +59,7 @@ def get_query(params, index):
 def extract(query_url, keyword):
     print("Obtaining information for: {}".format(keyword))
 
-    driver = utilities.setup_browser()
+    driver = utilities.setup_browser("firefox")
     driver.get(query_url)
 
     extracted_data = booking.extract(driver, utilities.configs.get("threads"))

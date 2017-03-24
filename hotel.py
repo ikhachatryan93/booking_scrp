@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import time
 
 from bs4 import BeautifulSoup
 
@@ -8,15 +9,21 @@ from bs4 import BeautifulSoup
 class Hotel:
     def __init__(self, driver):
         self.info = dict(
-            url="", type="", image_url="", name="", rating="", num_reviews="",
-            price="", address="", description="", map_url="", room_type="",
-            indoor_pool="", free_parking="", parking="", airoport_shuttle="", free_wifi="",
-            room_service="", restaurant="", family_rooms="")
+            url="", type="", image_url="", name="", rating="", num_reviews="", price="", address="",
+            description="", map_url="", room_type="", indoor_pool="", free_parking="", parking="",
+            airoport_shuttle="", free_wifi="", room_service="", restaurant="", family_rooms="",
+            non_smoking_rooms="", breakfast="", hotel_clean="", hotel_location="", hotel_comfort="",
+            hotel_services="", hotel_staff="", hotel_value="", hotel_wifi="", hotel_paid_wifi="")
 
         self.NOT_FOUND_MSG = "From {}: could not find ".format(driver.current_url)
         self.hotel = driver
         self.hotel_source = BeautifulSoup(self.hotel.page_source, "lxml")
         dict_source = self.hotel_source.find("script", {"type": "application/ld+json"}).next
+        try:
+            self.subratings = self.hotel_source.findAll("li", {"class": "clearfix one_col"})
+        except:
+            logging.warning(self.NOT_FOUND_MSG + "any subrating")
+
         self.dict = json.loads(dict_source)
         try:
             self.facilities = self.hotel_source.find("div", {"class": "hp_desc_important_facilities"}). \
@@ -118,6 +125,17 @@ class Hotel:
             if "Family Room".upper() in self.facilities:
                 self.info["family_rooms"] = "Y"
 
+
+    def get_subratings(self):
+        try:
+            for rating in self.subratings:
+                key = rating.attrs["data-question"].strip()
+                value = rating.find("p", {"class": "review_score_value"}).text.strip()
+                if key and value:
+                    self.info[key] = value
+        except:
+            logging.warning(self.NOT_FOUND_MSG + "subratings")
+
     def extract(self):
         self.get_name()
         self.get_url()
@@ -131,3 +149,4 @@ class Hotel:
         self.get_room_type()
         self.get_type()
         self.get_facilites()
+        self.get_subratings()

@@ -33,6 +33,7 @@ class configs:
         configs.config["output_filename"] = config_parser.get('parameters', 'output_name')
         configs.config["testing"] = config_parser.getboolean('parameters', 'testing')
         configs.config["max_browsers"] = config_parser.getint('parameters', 'browsers')
+        configs.config["max_num_extract_hotels"] = config_parser.getint('parameters', 'max_num_extract_hotels')
 
         configs.read = True
 
@@ -85,11 +86,17 @@ def setup_chrome(bpath, maximize=True):
     opt = webdriver.ChromeOptions()
 
     # disable images
-    prefs = {"profile.managed_default_content_settings.images": 2}
-    opt.add_experimental_option("prefs", prefs)
+    disable_all = {"profile.managed_default_content_settings.images": 2,
+                   "profile.managed_default_content_settings.javascript": 2,
+                   "profile.managed_default_content_settings.location": 2,
+                   "profile.managed_default_content_settings.plugin": 2,
+                   "profile.managed_default_content_settings.popups": 2,
+                   "profile.managed_default_content_settings.automaticDownloads": 2}
+
+    opt.add_experimental_option("prefs", disable_all)
     # not sure that this work
-    opt.add_argument("--disable-extensions")
     driver = webdriver.Chrome(bpath, chrome_options=opt)
+    driver.delete_all_cookies()
 
     # maximize browser
     if maximize:
@@ -106,6 +113,8 @@ def setup_firefox(bpath, maximize=True):
     firefox_profile.set_preference('permissions.default.image', 2)
     # disable flash
     firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
+    # disable javascript
+    firefox_profile.set_preference('permissions.default.image', 2)
 
     driver = webdriver.Firefox(executable_path=bpath, firefox_profile=firefox_profile)
 
