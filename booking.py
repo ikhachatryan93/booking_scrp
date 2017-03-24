@@ -17,8 +17,13 @@ import utilities
 main_url = "http://www.booking.com"
 
 drivers = []
-for j in range(utilities.configs.get("max_browsers")):
-    drivers.append({"driver": utilities.setup_browser(), "status": "free", "num": 0})
+max_num_threads = utilities.configs.get("max_browsers")
+
+# for security reasons
+assert(max_num_threads < 30)
+
+for j in range(max_num_threads):
+    drivers.append({"driver": utilities.setup_browser(), "status": "free"})
 
 
 def get_hotel_urls(driver):
@@ -31,8 +36,8 @@ def get_hotel_urls(driver):
         elem = element.find_element_by_css_selector(".b-button__text")
         utilities.click(driver, elem)
         time.sleep(5)
-    except Exception as e:
-        print(e)
+    except TimeoutException:
+        pass
 
     urls = []
     testing = utilities.configs.get("testing")
@@ -59,7 +64,6 @@ def get_hotel_urls(driver):
 
     old_num = len(urls)
     filtered = set(urls)
-
     logging.info("Filtering duplicates... ")
     logging.info("Url extraction is done. Total {} have been filtered from {} extracted".format(len(filtered), old_num))
 
@@ -84,7 +88,7 @@ def extract_hotel(url, hotels_info, try_again=True):
         hotels_info.append(hotel.info)
     except Exception as e:
         logging.critical(str(e) + ". while getting information from " + url)
-        logging.warning("Trying again")
+        logging.info("Trying again")
         if try_again:
             extract_hotel(url, hotels_info, try_again=False)
     drivers[i]["status"] = "free"
@@ -93,6 +97,7 @@ def extract_hotel(url, hotels_info, try_again=True):
 def extract(driver, threads_num):
     hotels_url = get_hotel_urls(driver)
     hotels_info = []
+    # extract_hotel(hotels_url.pop(), hotels_info)
     trds = []
     i = 0
     total = len(hotels_url)
@@ -106,7 +111,7 @@ def extract(driver, threads_num):
         t.start()
         trds.append(t)
         while threading.active_count() > threads_num:
-            time.sleep(0.4)
+            time.sleep(0.2)
 
     for t in trds:
         t.join(10)

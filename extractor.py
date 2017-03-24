@@ -8,19 +8,17 @@ sys.path.insert(0, dir_path + sep + "drivers")
 sys.path.insert(0, dir_path + sep + "modules")
 
 try:
-from pyvirtualdisplay import Display
+    from pyvirtualdisplay import Display
 
-if "Linux" in platform.system():
-    display = Display(visible=1, size=(800, 600))
-    display.start()
+    if "Linux" in platform.system():
+        display = Display(visible=1, size=(800, 600))
+        display.start()
 except:
     pass
-
 
 import utilities
 import booking
 
-booking_url = "https//www.booking.com"
 main_query = 'http://www.booking.com/searchresults.html?checkin_month=CI_MONTH&checkin_monthday=CI_DAY&checkin_year' \
              '=CI_YEAR&checkout_month=CO_MONTH&checkout_monthday=CO_DAY&checkout_year=CO_YEAR&group_adults=ADULTS' \
              '&no_rooms=ROOMS&src_elem=sb&ss=CITY '
@@ -29,15 +27,18 @@ main_query = 'http://www.booking.com/searchresults.html?checkin_month=CI_MONTH&c
 def get_query(params, index):
     city = params["city"][index]
 
+    # Checkin date
     checkin = params["checkin"][index]
     ci_day = str(checkin.day)
     ci_month = str(checkin.month)
     ci_year = str(checkin.year)
 
+    # Checkout date
     checkout = params["checkout"][index]
     co_day = str(checkout.day)
     co_month = str(checkout.month)
     co_year = str(checkout.year)
+
     rooms = str(params["rooms"][index])
     adults = str(params["adults"][index])
     query = main_query. \
@@ -64,8 +65,6 @@ def extract(query_url, keyword):
     extracted_data = booking.extract(driver, utilities.configs.get("threads"))
 
     # utilities.append_into_file("done_list.txt", keyword)
-
-    driver.quit()
     return extracted_data
 
 

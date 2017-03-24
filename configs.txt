@@ -1,10 +1,10 @@
 [parameters]
 
 # number of threads to be run in parallel, depends on computer parameters
-# try between 5 to 30
+# try between 1 to 30
 threads = 3
 
-# max number of browsers
+# max number of browsers (should be: browsers <= threads)
 browsers = 3
 
 # browser type: chrome, firefox or phantomjs
@@ -26,4 +26,4 @@ output_format = excel
 output_name = output.xlsx
 
 # mode
-testing = true
+testing = True

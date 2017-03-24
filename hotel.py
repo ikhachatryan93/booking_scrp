@@ -1,8 +1,6 @@
 import json
-import re
 import logging
-
-import utilities
+import re
 
 from bs4 import BeautifulSoup
 
@@ -11,14 +9,20 @@ class Hotel:
     def __init__(self, driver):
         self.info = dict(
             url="", type="", image_url="", name="", rating="", num_reviews="",
-            price="", address="", description="", map_url="", room_type="")
-
-        self.hotel = driver
-        self.hotel_source = BeautifulSoup(self.hotel.page_source, "html5lib")
-        dict_source = self.hotel_source.find("script", {"type": "application/ld+json"}).next
-        self.dict = json.loads(dict_source)
+            price="", address="", description="", map_url="", room_type="",
+            indoor_pool="", free_parking="", parking="", airoport_shuttle="", free_wifi="",
+            room_service="", restaurant="", family_rooms="")
 
         self.NOT_FOUND_MSG = "From {}: could not find ".format(driver.current_url)
+        self.hotel = driver
+        self.hotel_source = BeautifulSoup(self.hotel.page_source, "lxml")
+        dict_source = self.hotel_source.find("script", {"type": "application/ld+json"}).next
+        self.dict = json.loads(dict_source)
+        try:
+            self.facilities = self.hotel_source.find("div", {"class": "hp_desc_important_facilities"}). \
+                text.replace("Most Popular Facilities", "").strip().upper()
+        except:
+            logging.warning(self.NOT_FOUND_MSG + "any facilities")
 
     def get_name(self):
         try:
@@ -93,8 +97,28 @@ class Hotel:
         except:
             logging.warning(self.NOT_FOUND_MSG + "room type")
 
+    def get_facilites(self):
+        if self.facilities:
+            if "Non-smoking rooms".upper() in self.facilities:
+                self.info["non_smoking_rooms"] = "Y"
+            if "Indoor pool".upper() in self.facilities:
+                self.info["indoor_pool"] = "Y"
+            if "Free parking".upper() in self.facilities:
+                self.info["free_parking"] = "Y"
+            if "Parking".upper() in self.facilities:
+                self.info["parking"] = "Y"
+            if "Airport shuttle".upper() in self.facilities:
+                self.info["airoport_shuttle"] = "Y"
+            if "Free WiFi".upper() in self.facilities:
+                self.info["free_wifi"] = "Y"
+            if "Room Service".upper() in self.facilities:
+                self.info["room_service"] = "Y"
+            if "Restaurant".upper() in self.facilities:
+                self.info["restaurant"] = "Y"
+            if "Family Room".upper() in self.facilities:
+                self.info["family_rooms"] = "Y"
+
     def extract(self):
-        # try:
         self.get_name()
         self.get_url()
         self.get_address()
@@ -106,3 +130,4 @@ class Hotel:
         self.get_map_url()
         self.get_room_type()
         self.get_type()
+        self.get_facilites()

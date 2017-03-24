@@ -13,6 +13,7 @@ dir_path = path.dirname(path.realpath(__file__))
 sys.path.append(dir_path + "modules")
 sys.path.append(dir_path + "drivers")
 
+
 class configs:
     file = r"./configs.txt"
 
@@ -81,10 +82,16 @@ def setup_browser(browser=""):
 
 
 def setup_chrome(bpath, maximize=True):
-    chromeOptions = webdriver.ChromeOptions()
+    opt = webdriver.ChromeOptions()
+
+    # disable images
     prefs = {"profile.managed_default_content_settings.images": 2}
-    chromeOptions.add_experimental_option("prefs", prefs)
-    driver = webdriver.Chrome(bpath, chrome_options=chromeOptions)
+    opt.add_experimental_option("prefs", prefs)
+    # not sure that this work
+    opt.add_argument("--disable-extensions")
+    driver = webdriver.Chrome(bpath, chrome_options=opt)
+
+    # maximize browser
     if maximize:
         driver.maximize_window()
     return driver
@@ -92,11 +99,17 @@ def setup_chrome(bpath, maximize=True):
 
 def setup_firefox(bpath, maximize=True):
     firefox_profile = webdriver.FirefoxProfile()
+
+    # disable css
     firefox_profile.set_preference('permissions.default.stylesheet', 2)
+    # disable images
     firefox_profile.set_preference('permissions.default.image', 2)
+    # disable flash
     firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
+
     driver = webdriver.Firefox(executable_path=bpath, firefox_profile=firefox_profile)
 
+    # maximize browser
     if maximize:
         driver.maximize_window()
     return driver
@@ -111,14 +124,14 @@ def setup_phantomjs(bpath, maximize=True):
 
 
 def write_output(data):
-    fformat = configs.get("output_format")
+    file_format = configs.get("output_format")
     file = configs.get("output_filename")
-    if fformat == "json":
-        write_json_file(file, data)
+    if file_format == "json":
+        write_json_file(file.rsplit(".", 1)[0] + ".json", data)
     else:
-        if fformat != "excel":
+        if file_format != "excel":
             logging.warning("Unknown output format is specified, using excel by default")
-        write_to_excel(file, data)
+        write_to_excel(file.rsplit(".", 1)[0] + ".xlsx", data)
 
 
 def write_json_file(name, data):
@@ -165,7 +178,7 @@ def write_lines_to_file(name, urls):
                 print(str(e))
 
 
-##  Clicks element
+# Clicks element
 def click(driver, elem):
     try:
         elem.click()
