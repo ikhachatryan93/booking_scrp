@@ -7,14 +7,9 @@ threads = 3
 # max number of browsers (should be: browsers <= threads)
 browsers = 3
 
-
 # browser type: chrome, firefox or phantomjs
 # do not use phantomjs, as it has many bugs
 driver = chrome
-
-# for firefox and chrome runs in background.
-# Only in linux!
-display_browser = No
 
 # write log into the stream or file
 # should be file or stream

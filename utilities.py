@@ -28,7 +28,6 @@ class configs:
         configs.config["driver"] = config_parser.get('parameters', 'driver')
         configs.config["logging_handler"] = config_parser.get('parameters', 'logging_handler')
         configs.config["threads"] = config_parser.getint('parameters', 'threads')
-        configs.config["display_browser"] = config_parser.getboolean('parameters', 'display_browser')
         configs.config["output_format"] = config_parser.get('parameters', 'output_format')
         configs.config["output_filename"] = config_parser.get('parameters', 'output_name')
         configs.config["testing"] = config_parser.getboolean('parameters', 'testing')

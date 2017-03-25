@@ -125,7 +125,6 @@ class Hotel:
             if "Family Room".upper() in self.facilities:
                 self.info["family_rooms"] = "Y"
 
-
     def get_subratings(self):
         try:
             for rating in self.subratings:
